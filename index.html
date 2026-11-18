@@ -1,0 +1,916 @@
+<!DOCTYPE html>
+<html lang="en" data-palette="cobalt">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Vagdevi Kurra, Data Engineer</title>
+<meta name="description" content="Vagdevi Kurra is a data engineer in Atlanta, GA building reliable Databricks, Snowflake and Spark pipelines for banking and supply chain data.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Manrope:wght@400;500;600;700&family=Unbounded:wght@500;700;900&display=swap" rel="stylesheet">
+<style>
+/* Layout idea: a control room. A live pipeline runs across the hero, everything below reads like instrument panels.
+   Five palettes live in CSS variables, so the whole site re-colors instantly. */
+:root,[data-palette="cobalt"]{
+  --bg:#05060b;--panel:#0b0f1c;--line:#1a2238;
+  --brand:#2150ff;--brand-rgb:33,80,255;--brand-text:#7b97ff;--on-brand:#ffffff;
+  --pop:#ccff00;--pop-rgb:204,255,0;--on-pop:#05060b;
+  --ink:#eef1ff;--muted:#8f99b8;--bad:#ff4d6d;--raw:#5f84ff;
+  color-scheme:dark;
+}
+[data-palette="obsidian"]{
+  --bg:#0a0908;--panel:#131110;--line:#2a2520;
+  --brand:#b8893a;--brand-rgb:184,137,58;--brand-text:#d9b36b;--on-brand:#0a0908;
+  --pop:#f1d08a;--pop-rgb:241,208,138;--on-pop:#0a0908;
+  --ink:#f4eee3;--muted:#a39a8b;--bad:#ff6b6b;--raw:#7d7566;
+  color-scheme:dark;
+}
+[data-palette="aurora"]{
+  --bg:#060a13;--panel:#0c1322;--line:#1a2740;
+  --brand:#6d5bff;--brand-rgb:109,91,255;--brand-text:#a99bff;--on-brand:#ffffff;
+  --pop:#5eead4;--pop-rgb:94,234,212;--on-pop:#06121a;
+  --ink:#e9f1ff;--muted:#8ea3c0;--bad:#ff6b8b;--raw:#8a7dff;
+  color-scheme:dark;
+}
+[data-palette="ivory"]{
+  --bg:#f4efe4;--panel:#fbf7ee;--line:#ddd4c2;
+  --brand:#1e5a46;--brand-rgb:30,90,70;--brand-text:#1e5a46;--on-brand:#ffffff;
+  --pop:#d93a17;--pop-rgb:217,58,23;--on-pop:#ffffff;
+  --ink:#17140f;--muted:#645d4f;--bad:#b00020;--raw:#1e5a46;
+  color-scheme:light;
+}
+[data-palette="sunset"]{
+  --bg:#0b090f;--panel:#141019;--line:#2a2233;
+  --brand:#ff4f8b;--brand-rgb:255,79,139;--brand-text:#ff8fb4;--on-brand:#0b090f;
+  --pop:#ffb86b;--pop-rgb:255,184,107;--on-pop:#0b090f;
+  --ink:#fbeff2;--muted:#a897ad;--bad:#ff3b5c;--raw:#ff6aa0;
+  color-scheme:dark;
+}
+:root{
+  --font-display:"Unbounded","Arial Black",system-ui,sans-serif;
+  --font-body:"Manrope",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  --font-mono:"JetBrains Mono",ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  --mx:50%;--my:30%;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth;background:var(--bg)}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--font-body);font-size:17px;line-height:1.6;-webkit-font-smoothing:antialiased;overflow-x:hidden;transition:background .35s ease,color .35s ease}
+body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;background:radial-gradient(520px circle at var(--mx) var(--my),rgba(var(--brand-rgb),.24),transparent 60%)}
+body::after{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;opacity:.5;background-image:linear-gradient(var(--line) 1px,transparent 1px),linear-gradient(90deg,var(--line) 1px,transparent 1px);background-size:56px 56px;-webkit-mask-image:radial-gradient(ellipse at 50% 0%,#000 0%,transparent 70%);mask-image:radial-gradient(ellipse at 50% 0%,#000 0%,transparent 70%)}
+main,header,footer{position:relative;z-index:1}
+a{color:var(--pop);text-underline-offset:3px}
+a:focus-visible,button:focus-visible,input:focus-visible{outline:3px solid var(--pop);outline-offset:3px;border-radius:6px}
+.wrap{max-width:1080px;margin:0 auto;padding:0 20px}
+#progress{position:fixed;top:0;left:0;height:3px;width:0;background:linear-gradient(90deg,var(--brand),var(--pop));z-index:60}
+
+/* nav */
+.top{position:sticky;top:0;z-index:40;backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);background:color-mix(in srgb,var(--bg) 78%,transparent);border-bottom:1px solid var(--line)}
+.nav{display:flex;flex-wrap:wrap;gap:8px 22px;align-items:center;justify-content:space-between;padding:12px 20px}
+.brand{font-family:var(--font-mono);font-size:14px;color:var(--pop);letter-spacing:.02em;text-decoration:none}
+.brand i{font-style:normal;color:var(--muted)}
+.nav-right{display:flex;flex-wrap:wrap;gap:8px 18px;align-items:center}
+.nav ul{display:flex;flex-wrap:wrap;gap:4px 18px;list-style:none;margin:0;padding:0;font-size:15px}
+.nav ul a{color:var(--ink);text-decoration:none}
+.nav ul a:hover{color:var(--pop)}
+.swatches{display:flex;gap:7px;align-items:center}
+.swatch{width:22px;height:22px;border-radius:50%;border:2px solid var(--line);padding:0;cursor:pointer;transition:transform .15s ease,border-color .15s ease}
+.swatch:hover{transform:scale(1.18)}
+.swatch[aria-pressed="true"]{border-color:var(--ink);transform:scale(1.1)}
+.swatch[data-p="cobalt"]{background:linear-gradient(135deg,#2150ff 50%,#ccff00 50%)}
+.swatch[data-p="obsidian"]{background:linear-gradient(135deg,#0a0908 50%,#f1d08a 50%)}
+.swatch[data-p="aurora"]{background:linear-gradient(135deg,#6d5bff 50%,#5eead4 50%)}
+.swatch[data-p="ivory"]{background:linear-gradient(135deg,#f4efe4 50%,#d93a17 50%)}
+.swatch[data-p="sunset"]{background:linear-gradient(135deg,#ff4f8b 50%,#ffb86b 50%)}
+.kbd-btn{font-family:var(--font-mono);font-size:12px;color:var(--muted);background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:5px 9px;cursor:pointer}
+.kbd-btn:hover{color:var(--ink);border-color:var(--brand)}
+
+/* hero */
+.hero{padding:52px 0 24px}
+.eyebrow{display:inline-flex;align-items:center;gap:10px;font-family:var(--font-mono);font-size:13px;color:var(--pop);letter-spacing:.08em;text-transform:uppercase;margin:0 0 20px;border:1px solid var(--line);background:var(--panel);padding:6px 12px;border-radius:999px}
+.eyebrow::before{content:"";flex:none;width:8px;height:8px;border-radius:50%;background:var(--pop);box-shadow:0 0 0 4px rgba(var(--pop-rgb),.2);animation:pulse 2s ease-in-out infinite}
+@keyframes pulse{50%{box-shadow:0 0 0 8px rgba(var(--pop-rgb),0)}}
+h1{font-family:var(--font-display);font-weight:900;font-size:clamp(38px,8.4vw,108px);line-height:.98;letter-spacing:-.03em;margin:0 0 20px;text-wrap:balance}
+h1 .outline{color:transparent;-webkit-text-stroke:2px var(--pop);display:block}
+h1 .dot{color:var(--brand-text)}
+.lede{max-width:60ch;font-size:19px;color:var(--muted);margin:0 0 28px}
+.lede b{color:var(--ink);font-weight:600}
+.cta{display:flex;flex-wrap:wrap;gap:12px}
+.btn{display:inline-flex;align-items:center;gap:8px;padding:13px 20px;border-radius:10px;font-weight:700;text-decoration:none;font-size:16px;border:1px solid var(--brand);cursor:pointer;font-family:var(--font-body);transition:transform .12s ease-out,box-shadow .2s ease,background .2s ease,color .2s ease;will-change:transform}
+.btn.primary{background:var(--pop);color:var(--on-pop);border-color:var(--pop)}
+.btn.primary:hover{box-shadow:0 8px 28px rgba(var(--pop-rgb),.38)}
+.btn.ghost{background:transparent;color:var(--ink)}
+.btn.ghost:hover{background:var(--brand);color:var(--on-brand);box-shadow:0 8px 28px rgba(var(--brand-rgb),.45)}
+
+/* pipeline */
+.flow{margin:34px 0 0;border:1px solid var(--line);border-radius:16px;background:linear-gradient(180deg,color-mix(in srgb,var(--panel) 92%,transparent),color-mix(in srgb,var(--bg) 92%,transparent));overflow:hidden}
+.flow canvas{display:block;width:100%;height:300px;cursor:crosshair;touch-action:pan-y}
+.flow-bar{display:flex;flex-wrap:wrap;gap:10px 22px;align-items:center;justify-content:space-between;padding:12px 16px;border-top:1px solid var(--line);font-family:var(--font-mono);font-size:12px;color:var(--muted)}
+.flow-bar b{color:var(--pop);font-weight:700;font-variant-numeric:tabular-nums}
+.flow-bar .bad{color:var(--bad)}
+.legend,.controls{display:flex;flex-wrap:wrap;gap:6px 18px;align-items:center}
+.sq{display:inline-block;width:9px;height:9px;margin-right:6px;border-radius:2px;vertical-align:-1px}
+.controls label{display:flex;align-items:center;gap:8px}
+input[type=range]{accent-color:var(--pop);width:110px}
+.mini{font-family:var(--font-mono);font-size:12px;border:1px solid var(--bad);color:var(--bad);background:transparent;border-radius:8px;padding:6px 10px;cursor:pointer;font-weight:700}
+.mini:hover{background:var(--bad);color:var(--bg)}
+
+/* ticker */
+.ticker{margin:28px 0 0;border-top:1px solid var(--line);border-bottom:1px solid var(--line);overflow:hidden;background:var(--panel);position:relative;z-index:1}
+.ticker-track{display:flex;width:max-content;animation:slide 38s linear infinite;font-family:var(--font-mono);font-size:14px;color:var(--muted)}
+.ticker-track:hover{animation-play-state:paused}
+.ticker span{padding:12px 22px;white-space:nowrap}
+.ticker span:nth-child(3n){color:var(--pop)}
+.ticker span:nth-child(3n+1){color:var(--brand-text)}
+@keyframes slide{to{transform:translateX(-50%)}}
+
+section{padding:64px 0 8px}
+.kicker{font-family:var(--font-mono);font-size:13px;letter-spacing:.08em;text-transform:uppercase;margin:0 0 8px;color:var(--brand-text);cursor:default}
+h2{font-family:var(--font-display);font-weight:700;font-size:clamp(26px,4.4vw,44px);line-height:1.1;letter-spacing:-.02em;margin:0 0 10px;text-wrap:balance}
+.sub{color:var(--muted);margin:0 0 28px;max-width:62ch}
+
+/* console + terminal shared */
+.console{border:1px solid var(--line);border-radius:14px;background:var(--panel);overflow:hidden;box-shadow:0 30px 80px rgba(var(--brand-rgb),.14)}
+.console-bar{display:flex;align-items:center;gap:8px;padding:10px 14px;border-bottom:1px solid var(--line);font-family:var(--font-mono);font-size:12px;color:var(--muted)}
+.dots{display:flex;gap:6px}
+.dots i{width:10px;height:10px;border-radius:50%;background:var(--line)}
+.dots i:first-child{background:var(--brand)}
+.dots i:last-child{background:var(--pop)}
+.console-bar .run{margin-left:auto}
+.run-btn{font-family:var(--font-mono);font-size:12px;background:var(--pop);color:var(--on-pop);border:0;border-radius:6px;padding:6px 12px;font-weight:700;cursor:pointer}
+.run-btn:hover{filter:brightness(1.1)}
+.sql{margin:0;padding:18px 18px 6px;font-family:var(--font-mono);font-size:14px;color:var(--ink);overflow-x:auto}
+.sql .k{color:var(--brand-text)}
+.sql .f{color:var(--pop)}
+.sql .c{color:var(--muted)}
+.result{padding:6px 18px 18px;overflow-x:auto}
+.result table{width:100%;border-collapse:collapse;font-family:var(--font-mono);font-size:14px;min-width:420px}
+.result th{text-align:left;color:var(--muted);font-weight:500;padding:8px 10px;border-bottom:1px solid var(--line)}
+.result td{padding:10px;border-bottom:1px dashed var(--line);font-variant-numeric:tabular-nums}
+.result td:last-child{color:var(--pop);font-weight:700;font-size:18px;text-align:right}
+.result th:last-child{text-align:right}
+.result tr.new{animation:rowin .35s ease both}
+@keyframes rowin{from{opacity:0;transform:translateX(-10px)}to{opacity:1;transform:none}}
+.status{font-family:var(--font-mono);font-size:12px;color:var(--muted);padding:0 18px 14px}
+.status b{color:var(--pop)}
+
+.term-out{height:300px;overflow:auto;padding:16px 18px 6px;font-family:var(--font-mono);font-size:14px;line-height:1.55}
+.term-out div{white-space:pre-wrap;word-break:break-word}
+.term-out .cmd{color:var(--ink)}
+.term-out .cmd::before{content:"$ ";color:var(--pop)}
+.term-out .ok{color:var(--pop)}
+.term-out .dim{color:var(--muted)}
+.term-in{display:flex;gap:8px;align-items:center;padding:6px 18px 16px;font-family:var(--font-mono);font-size:14px}
+.term-in span{color:var(--pop)}
+.term-in input{flex:1;min-width:0;background:transparent;border:0;border-bottom:1px solid var(--line);color:var(--ink);font:inherit;padding:6px 2px}
+.chiprow{display:flex;flex-wrap:wrap;gap:8px;padding:0 18px 16px}
+.chiprow button{font-family:var(--font-mono);font-size:12px;color:var(--muted);background:transparent;border:1px solid var(--line);border-radius:999px;padding:5px 11px;cursor:pointer}
+.chiprow button:hover{color:var(--pop);border-color:var(--pop)}
+
+/* about */
+.about-grid{display:grid;grid-template-columns:1.2fr 1fr;gap:28px;align-items:start}
+.about p{margin:0 0 14px;max-width:62ch}
+.facts{display:grid;gap:10px;font-family:var(--font-mono);font-size:14px}
+.facts div{display:flex;justify-content:space-between;gap:12px;border:1px solid var(--line);background:var(--panel);border-radius:10px;padding:12px 14px;transition:border-color .2s ease,transform .2s ease}
+.facts div:hover{border-color:var(--pop);transform:translateX(4px)}
+.facts span{color:var(--muted)}
+.facts b{font-weight:500;text-align:right}
+
+/* experience */
+.timeline{position:relative;display:grid;gap:18px;padding-left:26px}
+.timeline::before{content:"";position:absolute;left:7px;top:8px;bottom:8px;width:2px;background:linear-gradient(var(--pop),var(--brand),var(--line))}
+.job{position:relative;border:1px solid var(--line);background:var(--panel);border-radius:14px;padding:22px;transition:border-color .2s ease,transform .2s ease}
+.job::before{content:"";position:absolute;left:-26px;top:28px;width:16px;height:16px;border-radius:50%;background:var(--bg);border:3px solid var(--pop)}
+.job:hover{border-color:var(--brand);transform:translateX(4px)}
+.when{font-family:var(--font-mono);font-size:13px;color:var(--pop)}
+.job h3{margin:4px 0 0;font-size:20px;font-family:var(--font-display);font-weight:500;letter-spacing:-.01em}
+.org{color:var(--muted);margin:4px 0 12px}
+.job ul{margin:0;padding-left:20px}
+.job li{margin:0 0 7px;max-width:72ch}
+.job li::marker{color:var(--brand-text)}
+
+/* work */
+.cases{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:18px;perspective:1000px}
+.case{position:relative;background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:24px;display:flex;flex-direction:column;gap:12px;transform-style:preserve-3d;transition:transform .15s ease-out,border-color .2s ease,box-shadow .2s ease;overflow:hidden}
+.case::after{content:"";position:absolute;inset:0;background:radial-gradient(260px circle at var(--cx,50%) var(--cy,0%),rgba(var(--pop-rgb),.14),transparent 60%);opacity:0;transition:opacity .2s ease;pointer-events:none}
+.case:hover{border-color:var(--pop);box-shadow:0 20px 60px rgba(var(--brand-rgb),.28)}
+.case:hover::after{opacity:1}
+.tag{font-family:var(--font-mono);font-size:12px;color:var(--brand-text);letter-spacing:.06em;text-transform:uppercase}
+.case h3{margin:0;font-size:20px;line-height:1.25;font-family:var(--font-display);font-weight:500;letter-spacing:-.01em}
+.case dl{margin:0;display:grid;gap:12px}
+.case dt{font-family:var(--font-mono);font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+.case dd{margin:2px 0 0;font-size:16px}
+.result-line{margin:auto 0 0;padding-top:14px;border-top:1px dashed var(--line);font-weight:700;color:var(--pop)}
+
+/* code from GitHub */
+.gh-head{display:flex;flex-wrap:wrap;gap:8px 18px;align-items:center;justify-content:space-between;margin:0 0 18px;font-family:var(--font-mono);font-size:13px;color:var(--muted)}
+.gh-head b{color:var(--pop);font-weight:700}
+.repos{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px}
+.repo{display:flex;flex-direction:column;gap:10px;background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:20px;color:var(--ink);text-decoration:none;transition:border-color .2s ease,transform .2s ease,box-shadow .2s ease}
+.repo:hover{border-color:var(--pop);transform:translateY(-3px);box-shadow:0 14px 40px rgba(var(--brand-rgb),.25)}
+.repo h3{margin:0;font-family:var(--font-mono);font-size:16px;font-weight:700;color:var(--pop);word-break:break-word}
+.repo p{margin:0;color:var(--muted);font-size:15px}
+.repo .meta{margin-top:auto;display:flex;flex-wrap:wrap;gap:6px 14px;font-family:var(--font-mono);font-size:12px;color:var(--muted)}
+.repo .lang::before{content:"";display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--brand-text);margin-right:6px}
+.gh-note{margin:14px 0 0;color:var(--muted);font-size:14px}
+
+/* skills */
+.filters{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 20px}
+.filters button{font-family:var(--font-mono);font-size:13px;padding:7px 14px;border-radius:999px;border:1px solid var(--line);background:var(--panel);color:var(--muted);cursor:pointer;transition:all .15s ease}
+.filters button:hover{color:var(--ink);border-color:var(--brand)}
+.filters button[aria-pressed="true"]{background:var(--brand);border-color:var(--brand);color:var(--on-brand)}
+.chips{display:flex;flex-wrap:wrap;gap:10px;list-style:none;margin:0;padding:0}
+.chips li{font-family:var(--font-mono);font-size:14px;padding:8px 14px;border-radius:10px;border:1px solid var(--line);background:var(--panel);transition:opacity .2s ease,border-color .15s ease,color .15s ease,transform .15s ease,box-shadow .15s ease}
+.chips li:hover{border-color:var(--pop);color:var(--pop);transform:translateY(-2px);box-shadow:0 6px 20px rgba(var(--pop-rgb),.2)}
+.chips li.dim{opacity:.22}
+.edu{display:grid;gap:12px}
+.edu div{display:flex;flex-wrap:wrap;gap:4px 24px;justify-content:space-between;border:1px solid var(--line);background:var(--panel);border-radius:12px;padding:16px 18px}
+.edu span{color:var(--muted)}
+
+/* contact */
+.contact-card{position:relative;border:1px solid var(--brand);border-radius:20px;padding:34px 26px;background:linear-gradient(135deg,rgba(var(--brand-rgb),.22),var(--panel) 60%);overflow:hidden}
+.contact-card h3{font-family:var(--font-display);font-weight:900;font-size:clamp(26px,5vw,52px);line-height:1.05;letter-spacing:-.03em;margin:0 0 14px}
+.contact-card h3 em{font-style:normal;color:var(--pop)}
+.contact-card p{margin:0 0 20px;color:var(--muted);max-width:56ch}
+.contact-card p.mail{font-family:var(--font-mono);font-size:clamp(15px,3.4vw,22px);word-break:break-all;margin:0 0 18px;color:var(--ink)}
+.row{display:flex;flex-wrap:wrap;gap:12px;align-items:center}
+.toast{font-family:var(--font-mono);font-size:13px;color:var(--pop);min-height:1.2em}
+footer{padding:36px 0 48px;color:var(--muted);font-size:14px;font-family:var(--font-mono)}
+
+/* command palette */
+.pal{position:fixed;inset:0;z-index:100;display:flex;align-items:flex-start;justify-content:center;padding:12vh 16px 16px;background:rgba(0,0,0,.55);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}
+.pal[hidden]{display:none}
+.pal-box{width:100%;max-width:560px;background:var(--panel);border:1px solid var(--brand);border-radius:16px;box-shadow:0 30px 90px rgba(var(--brand-rgb),.35);overflow:hidden}
+.pal-box input{width:100%;background:transparent;border:0;border-bottom:1px solid var(--line);color:var(--ink);font:500 17px var(--font-mono);padding:16px 18px}
+.pal-box input:focus-visible{outline:none;border-bottom-color:var(--pop)}
+.pal-list{list-style:none;margin:0;padding:6px;max-height:50vh;overflow:auto}
+.pal-list li button{display:flex;justify-content:space-between;gap:12px;width:100%;text-align:left;background:transparent;border:0;color:var(--ink);font:500 15px var(--font-body);padding:10px 12px;border-radius:10px;cursor:pointer}
+.pal-list li button span{color:var(--muted);font-family:var(--font-mono);font-size:12px}
+.pal-list li button[aria-selected="true"]{background:var(--brand);color:var(--on-brand)}
+.pal-list li button[aria-selected="true"] span{color:inherit;opacity:.8}
+.pal-foot{display:flex;gap:16px;padding:8px 14px;border-top:1px solid var(--line);font-family:var(--font-mono);font-size:11px;color:var(--muted)}
+
+@media (max-width:760px){
+  body{font-size:16px}
+  .hero{padding:34px 0 16px}
+  .about-grid{grid-template-columns:1fr}
+  h1 .outline{-webkit-text-stroke-width:1.5px}
+  .flow canvas{height:260px}
+  section{padding-top:48px}
+  .term-out{height:260px}
+}
+@media (prefers-reduced-motion:reduce){
+  html{scroll-behavior:auto}
+  .ticker-track{animation:none;flex-wrap:wrap;width:auto}
+  .eyebrow::before{animation:none}
+  .result tr.new{animation:none}
+  .case,.job,.chips li,.btn,.facts div,.swatch{transition:none}
+}
+</style>
+</head>
+<body>
+<div id="progress" aria-hidden="true"></div>
+
+<header class="top">
+  <div class="wrap nav">
+    <a class="brand" href="#top">vagdevi<i>@</i>pipeline:~$</a>
+    <div class="nav-right">
+      <nav aria-label="Primary">
+        <ul>
+          <li><a href="#impact">Impact</a></li>
+          <li><a href="#experience">Experience</a></li>
+          <li><a href="#work">Work</a></li>
+          <li><a href="#code">Code</a></li>
+          <li><a href="#skills">Skills</a></li>
+          <li><a href="#contact">Contact</a></li>
+        </ul>
+      </nav>
+      <div class="swatches" role="group" aria-label="Color theme">
+        <button class="swatch" type="button" data-p="cobalt" aria-label="Cobalt and lime theme" title="Cobalt + Lime" aria-pressed="true"></button>
+        <button class="swatch" type="button" data-p="obsidian" aria-label="Obsidian and champagne theme" title="Obsidian + Champagne" aria-pressed="false"></button>
+        <button class="swatch" type="button" data-p="aurora" aria-label="Aurora violet and mint theme" title="Aurora" aria-pressed="false"></button>
+        <button class="swatch" type="button" data-p="ivory" aria-label="Ivory and vermilion light theme" title="Ivory + Vermilion" aria-pressed="false"></button>
+        <button class="swatch" type="button" data-p="sunset" aria-label="Sunset pink and amber theme" title="Sunset" aria-pressed="false"></button>
+      </div>
+      <button class="kbd-btn" id="open-pal" type="button" aria-label="Open command palette">⌘K</button>
+    </div>
+  </div>
+</header>
+
+<main class="wrap" id="top">
+  <div class="hero">
+    <p class="eyebrow" data-scramble>Open to data engineering roles · Atlanta, GA</p>
+    <h1>Vagdevi Kurra<span class="dot">.</span><span class="outline">Data Engineer</span></h1>
+    <p class="lede">I take <b>messy, late, inconsistent data</b> and turn it into pipelines that arrive on time and numbers people trust. Five years across banking, supply chain and consulting, on Databricks, Snowflake, Spark, SQL and Python.</p>
+    <div class="cta">
+      <a class="btn primary" href="#contact">Get in touch</a>
+      <a class="btn ghost" href="Vagdevi_Kurra_Resume.pdf">Download resume</a>
+    </div>
+
+    <div class="flow">
+      <canvas id="flow" role="img" aria-label="Animated pipeline. Records flow from source through ingest and transform to serve. Raw records are one color, validated records another. Click to inject a bad record and watch the transform step catch it."></canvas>
+      <div class="flow-bar">
+        <div class="legend">
+          <span><i class="sq" id="sq-raw"></i>raw</span>
+          <span><i class="sq" id="sq-clean"></i>validated</span>
+          <span><i class="sq" id="sq-bad"></i>bad</span>
+          <span>served <b id="rows">0</b></span>
+          <span class="bad">caught <b id="caught" style="color:var(--bad)">0</b></span>
+        </div>
+        <div class="controls">
+          <label>throughput <input id="speed" type="range" min="0.4" max="3" step="0.1" value="1" aria-label="Pipeline throughput"><b id="speedv">1.0x</b></label>
+          <button class="mini" id="inject" type="button">inject bad record</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<div class="ticker" aria-hidden="true">
+  <div class="ticker-track" id="ticker"></div>
+</div>
+
+<main class="wrap">
+  <section id="impact">
+    <p class="kicker" data-scramble>// impact</p>
+    <h2>Results, queried.</h2>
+    <p class="sub">The numbers from my last three roles, in one result set. Press run to replay it.</p>
+    <div class="console">
+      <div class="console-bar">
+        <span class="dots"><i></i><i></i><i></i></span>
+        <span>impact.sql</span>
+        <span class="run"><button class="run-btn" id="run" type="button">▶ Run again</button></span>
+      </div>
+      <pre class="sql"><span class="c">-- illustrative query over my real project outcomes</span>
+<span class="k">SELECT</span> <span class="f">metric</span>, <span class="f">value</span>
+<span class="k">FROM</span>   vagdevi.impact
+<span class="k">ORDER BY</span> role_start <span class="k">DESC</span>;</pre>
+      <div class="result">
+        <table>
+          <thead><tr><th>metric</th><th>value</th></tr></thead>
+          <tbody id="rowsbody">
+            <tr><td>banking_query_speedup</td><td>45%</td></tr>
+            <tr><td>records_processed_per_day</td><td>10M+</td></tr>
+            <tr><td>sql_execution_speedup</td><td>55%</td></tr>
+            <tr><td>snowflake_cost_reduction</td><td>30%</td></tr>
+            <tr><td>dashboard_users</td><td>200+</td></tr>
+            <tr><td>data_accuracy_improvement</td><td>25%</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="status" id="status">6 rows returned · <b>OK</b></div>
+    </div>
+  </section>
+
+  <section id="about" class="about">
+    <p class="kicker" data-scramble>// about</p>
+    <h2>The layer between raw systems and the people who depend on them.</h2>
+    <p class="sub">&nbsp;</p>
+    <div class="about-grid">
+      <div>
+        <p>I model entities and metrics clearly, build pipelines that cope with changing sources, and add the checks that catch bad data before a report does.</p>
+        <p>At a bank I work on identity, authentication and fraud data in Databricks. Before that I built Snowflake and Spark pipelines for a global manufacturer, pulling from ERP, warehouse and HR systems. I care about performance, documentation and explaining my decisions in plain language.</p>
+      </div>
+      <div class="facts">
+        <div><span>role</span><b>Data Engineer</b></div>
+        <div><span>experience</span><b>5+ years</b></div>
+        <div><span>based in</span><b>Atlanta, GA</b></div>
+        <div><span>core stack</span><b>Databricks · Snowflake · Spark</b></div>
+        <div><span>degree</span><b>M.S. ECE, UAB</b></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="terminal">
+    <p class="kicker" data-scramble>// terminal</p>
+    <h2>Ask me in the terminal.</h2>
+    <p class="sub">Type a command, or tap one below. Try <code>help</code>, <code>stack</code>, or <code>theme aurora</code>.</p>
+    <div class="console" id="term">
+      <div class="console-bar"><span class="dots"><i></i><i></i><i></i></span><span>vagdevi@pipeline: ~</span></div>
+      <div class="term-out" id="termout" role="log" aria-live="polite"></div>
+      <form class="term-in" id="termform" autocomplete="off">
+        <span>$</span>
+        <input id="terminput" type="text" aria-label="Terminal command" spellcheck="false" autocapitalize="off" autocomplete="off" placeholder="type a command">
+      </form>
+      <div class="chiprow" id="termchips"></div>
+    </div>
+  </section>
+
+  <section id="experience">
+    <p class="kicker" data-scramble>// experience</p>
+    <h2>Where the pipelines ran.</h2>
+    <p class="sub">Most recent first.</p>
+    <div class="timeline">
+      <div class="job">
+        <div class="when">OCT 2025 → PRESENT</div>
+        <h3>Data Engineer</h3>
+        <p class="org">Kforce, on assignment at Regions Bank</p>
+        <ul>
+          <li>Build and run Databricks, PySpark, dbt and Delta Lake pipelines for banking identity, authentication and fraud data from DB2/AS400, APIs, databases, files and Kafka.</li>
+          <li>Improved query execution by 45% through partitioning, clustering and query plan review.</li>
+          <li>Added validation at ingest, reconciliation and anomaly checks with documented recovery steps.</li>
+          <li>Built Kafka and Spark Structured Streaming pipelines with checkpointing, retries and deduplication.</li>
+          <li>Automated releases with Terraform and Git/Jenkins CI/CD.</li>
+        </ul>
+      </div>
+      <div class="job">
+        <div class="when">MAY 2023 → OCT 2025</div>
+        <h3>Senior Data &amp; Business Analyst</h3>
+        <p class="org">Rain Bird Corporation</p>
+        <ul>
+          <li>Built Snowflake, Databricks, Python, PySpark and dbt pipelines processing 10M+ records daily from Oracle Fusion ERP, SAP, Workday, Manhattan WMS and external APIs.</li>
+          <li>Improved complex SQL execution by 55% and supported Snowflake optimizations that cut costs by 30%.</li>
+          <li>Designed dimensional models and shared metric definitions with finance, supply chain and warehouse teams.</li>
+          <li>Delivered Power BI and Tableau reports and dashboards for 200+ users.</li>
+        </ul>
+      </div>
+      <div class="job">
+        <div class="when">MAY 2019 → AUG 2021</div>
+        <h3>Development Analyst</h3>
+        <p class="org">Accenture Solutions Pvt. Ltd.</p>
+        <ul>
+          <li>Developed SQL, Python, PySpark and SSIS/ETL integrations across SAP ECC, Oracle EBS, SQL Server and enterprise data warehouses for Fortune 500 clients.</li>
+          <li>Built reusable SQL validation routines and reconciliation controls, improving data accuracy by 25%.</li>
+          <li>Supported Informatica and cloud integrations, Git/Jenkins releases and testing.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section id="work">
+    <p class="kicker" data-scramble>// selected work</p>
+    <h2>Three problems, three fixes.</h2>
+    <p class="sub">Described at the level I can share publicly. Hover a card.</p>
+    <div class="cases">
+      <article class="case">
+        <span class="tag">Banking · Databricks</span>
+        <h3>Authentication and fraud data layer</h3>
+        <dl>
+          <div><dt>Problem</dt><dd>Fraud and cyber teams needed fast, consistent answers from authentication data spread across several source systems.</dd></div>
+          <div><dt>What I did</dt><dd>Modeled curated Delta Lake layers with PySpark and dbt, added ingest checks and recovery steps, and tuned partitioning and clustering.</dd></div>
+        </dl>
+        <p class="result-line">45% faster query execution.</p>
+      </article>
+      <article class="case">
+        <span class="tag">Supply chain · Snowflake</span>
+        <h3>Enterprise reporting pipeline</h3>
+        <dl>
+          <div><dt>Problem</dt><dd>Reports pulled from ERP, warehouse and HR systems, with slow SQL, rising warehouse cost and KPIs defined differently by team.</dd></div>
+          <div><dt>What I did</dt><dd>Rewrote slow transformations, tuned Snowflake usage, and built dimensional models with shared metric definitions.</dd></div>
+        </dl>
+        <p class="result-line">55% faster SQL and 30% lower Snowflake cost across 10M+ daily records.</p>
+      </article>
+      <article class="case">
+        <span class="tag">Consulting · ETL</span>
+        <h3>Source-to-target validation toolkit</h3>
+        <dl>
+          <div><dt>Problem</dt><dd>Loads from SAP, Oracle and SQL Server failed or drifted, and errors surfaced late.</dd></div>
+          <div><dt>What I did</dt><dd>Built reusable SQL validation routines, source-to-target mappings and reconciliation controls.</dd></div>
+        </dl>
+        <p class="result-line">25% better data accuracy.</p>
+      </article>
+    </div>
+  </section>
+
+  <section id="code">
+    <p class="kicker" data-scramble>// code</p>
+    <h2>Straight from GitHub.</h2>
+    <p class="sub">My most recently updated public repositories. This list loads live, so it stays current without any edits.</p>
+    <div class="gh-head"><span id="ghmeta">github.com/Vagdevikurra</span><a href="https://github.com/Vagdevikurra">View all on GitHub →</a></div>
+    <div class="repos" id="ghgrid">
+      <a class="repo" href="https://github.com/Vagdevikurra">
+        <h3>Vagdevikurra</h3>
+        <p>Open my GitHub profile to see all of my repositories, code and activity.</p>
+        <div class="meta"><span>github.com</span></div>
+      </a>
+    </div>
+    <p class="gh-note" id="ghnote"></p>
+  </section>
+
+  <section id="skills">
+    <p class="kicker" data-scramble>// skills</p>
+    <h2>The stack, filterable.</h2>
+    <p class="sub">Pick a group to light up its tools.</p>
+    <div class="filters" role="group" aria-label="Filter skills">
+      <button type="button" data-f="all" aria-pressed="true">All</button>
+      <button type="button" data-f="lang" aria-pressed="false">Languages</button>
+      <button type="button" data-f="plat" aria-pressed="false">Platforms</button>
+      <button type="button" data-f="pipe" aria-pressed="false">Pipelines</button>
+      <button type="button" data-f="cloud" aria-pressed="false">Cloud &amp; DevOps</button>
+      <button type="button" data-f="bi" aria-pressed="false">Reporting</button>
+    </div>
+    <ul class="chips" id="chips">
+      <li data-c="lang">SQL</li><li data-c="lang">Python</li><li data-c="lang">PySpark</li><li data-c="lang">Spark SQL</li>
+      <li data-c="plat">Databricks</li><li data-c="plat">Snowflake</li><li data-c="plat">Delta Lake</li><li data-c="plat">PostgreSQL</li><li data-c="plat">DB2</li>
+      <li data-c="pipe">dbt</li><li data-c="pipe">Airflow</li><li data-c="pipe">Kafka</li><li data-c="pipe">Spark Streaming</li><li data-c="pipe">Informatica</li><li data-c="pipe">SSIS</li>
+      <li data-c="cloud">AWS S3</li><li data-c="cloud">Glue</li><li data-c="cloud">Lambda</li><li data-c="cloud">Terraform</li><li data-c="cloud">Git</li><li data-c="cloud">Jenkins</li>
+      <li data-c="bi">Power BI</li><li data-c="bi">Tableau</li>
+    </ul>
+  </section>
+
+  <section id="education">
+    <p class="kicker" data-scramble>// education</p>
+    <h2>Where I trained.</h2>
+    <p class="sub">&nbsp;</p>
+    <div class="edu">
+      <div><b>M.S., Electrical and Computer Engineering</b><span>University of Alabama at Birmingham · 2021 – 2023</span></div>
+      <div><b>B.Tech, Electronics and Communication Engineering</b><span>GITAM University · 2015 – 2019</span></div>
+    </div>
+  </section>
+
+  <section id="contact">
+    <p class="kicker" data-scramble>// contact</p>
+    <div class="contact-card">
+      <h3>Have data that needs to <em>arrive on time</em>?</h3>
+      <p>I'm open to data engineering roles. Email is the fastest way to reach me, and LinkedIn works too.</p>
+      <p class="mail"><a href="mailto:vagdevikurra1997@gmail.com">vagdevikurra1997@gmail.com</a></p>
+      <div class="row">
+        <button class="btn primary" id="copy" type="button">Copy email</button>
+        <a class="btn ghost" href="https://www.linkedin.com/in/vagdevikurraba">LinkedIn</a>
+        <a class="btn ghost" href="https://github.com/Vagdevikurra">GitHub</a>
+        <span class="toast" id="toast" role="status" aria-live="polite"></span>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap">© 2026 Vagdevi Kurra · Atlanta, GA · press <b>/</b> or <b>Ctrl+K</b> for the command palette</div>
+</footer>
+
+<div class="pal" id="pal" hidden>
+  <div class="pal-box" role="dialog" aria-modal="true" aria-label="Command palette">
+    <input id="palq" type="text" placeholder="Type a command or section…" aria-label="Search commands" autocomplete="off" spellcheck="false">
+    <ul class="pal-list" id="pallist" role="listbox"></ul>
+    <div class="pal-foot"><span>↑↓ navigate</span><span>↵ run</span><span>esc close</span></div>
+  </div>
+</div>
+
+<script>
+(function(){
+  var reduce = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var root = document.documentElement;
+  var EMAIL = 'vagdevikurra1997@gmail.com';
+  var PALETTES = ['cobalt','obsidian','aurora','ivory','sunset'];
+  var PNAME = {cobalt:'Cobalt + Lime', obsidian:'Obsidian + Champagne', aurora:'Aurora', ivory:'Ivory + Vermilion', sunset:'Sunset'};
+  function css(v){ return getComputedStyle(root).getPropertyValue(v).trim(); }
+
+  /* ---------- theme ---------- */
+  var swatches = document.querySelectorAll('.swatch');
+  var onTheme = [];
+  function setPalette(name, save){
+    if (PALETTES.indexOf(name) < 0) return false;
+    root.setAttribute('data-palette', name);
+    swatches.forEach(function(s){ s.setAttribute('aria-pressed', s.getAttribute('data-p') === name ? 'true' : 'false'); });
+    if (save){ try { localStorage.setItem('vk-palette', name); } catch (e) {} }
+    onTheme.forEach(function(f){ f(); });
+    return true;
+  }
+  swatches.forEach(function(s){ s.addEventListener('click', function(){ setPalette(s.getAttribute('data-p'), true); }); });
+  try { var saved = localStorage.getItem('vk-palette'); if (saved) setPalette(saved, false); } catch (e) {}
+
+  /* ---------- scroll progress + cursor glow ---------- */
+  var bar = document.getElementById('progress');
+  function onScroll(){
+    var h = document.documentElement, max = h.scrollHeight - h.clientHeight;
+    bar.style.width = (max > 0 ? (h.scrollTop / max) * 100 : 0) + '%';
+  }
+  window.addEventListener('scroll', onScroll, {passive:true}); onScroll();
+  window.addEventListener('pointermove', function(e){
+    document.body.style.setProperty('--mx', e.clientX + 'px');
+    document.body.style.setProperty('--my', e.clientY + 'px');
+  }, {passive:true});
+
+  /* ---------- ticker ---------- */
+  var words = ['Databricks','Snowflake','Delta Lake','PySpark','dbt','Kafka','Airflow','SQL','Python','Terraform','Spark Streaming','Power BI','Tableau','AWS Glue','Informatica'];
+  var tr = document.getElementById('ticker');
+  if (tr){ var h = ''; for (var k = 0; k < 2; k++){ words.forEach(function(w){ h += '<span>' + w + '</span>'; }); } tr.innerHTML = h; }
+
+  /* ---------- scramble (mono text only, so width never jumps) ---------- */
+  var GLY = '01<>/{}[]#$%&*+=?';
+  function scramble(el){
+    if (reduce) return;
+    if (!el.__final) el.__final = el.textContent;
+    var final = el.__final, n = final.length, frame = 0, total = 22;
+    clearInterval(el.__t);
+    el.__t = setInterval(function(){
+      frame++;
+      var out = '';
+      for (var i = 0; i < n; i++){
+        var c = final.charAt(i);
+        out += (c === ' ' || i < (frame / total) * n) ? c : GLY.charAt(Math.floor(Math.random() * GLY.length));
+      }
+      el.textContent = out;
+      if (frame >= total){ clearInterval(el.__t); el.textContent = final; }
+    }, 32);
+  }
+  var scr = document.querySelectorAll('[data-scramble]');
+  scr.forEach(function(el){
+    el.addEventListener('pointerenter', function(){ scramble(el); });
+  });
+  if ('IntersectionObserver' in window){
+    var io = new IntersectionObserver(function(es){
+      es.forEach(function(e){ if (e.isIntersecting){ scramble(e.target); io.unobserve(e.target); } });
+    }, {threshold:0.6});
+    scr.forEach(function(el){ io.observe(el); });
+  }
+
+  /* ---------- magnetic buttons ---------- */
+  if (!reduce){
+    document.querySelectorAll('.btn').forEach(function(b){
+      b.addEventListener('pointermove', function(e){
+        var r = b.getBoundingClientRect();
+        b.style.transform = 'translate(' + ((e.clientX - r.left - r.width / 2) * 0.15).toFixed(1) + 'px,' + ((e.clientY - r.top - r.height / 2) * 0.25).toFixed(1) + 'px)';
+      });
+      b.addEventListener('pointerleave', function(){ b.style.transform = ''; });
+    });
+  }
+
+  /* ---------- pipeline canvas ---------- */
+  var cv = document.getElementById('flow');
+  var rowsEl = document.getElementById('rows'), caughtEl = document.getElementById('caught');
+  var speedEl = document.getElementById('speed'), speedV = document.getElementById('speedv');
+  var injectBtn = document.getElementById('inject');
+  var injectBad = function(){};
+  if (cv && cv.getContext){
+    var ctx = cv.getContext('2d');
+    var W = 0, H = 0, dpr = 1, parts = [], frags = [], nodes = [], rows = 0, caught = 0, running = false, raf = 0, speed = 1;
+    var mouse = {x:-999, y:-999};
+    var stages = ['SOURCE','INGEST','TRANSFORM','SERVE'];
+    var LANES = 7, col = {raw:'#3d6bff', clean:'#ccff00', bad:'#ff4d6d', text:'#8aa2ff', lane:'rgba(143,153,184,0.12)'};
+    function refreshColors(){
+      col.raw = css('--raw'); col.clean = css('--pop'); col.bad = css('--bad'); col.text = css('--brand-text');
+      col.lane = 'rgba(' + css('--brand-rgb') + ',0.16)';
+      document.getElementById('sq-raw').style.background = col.raw;
+      document.getElementById('sq-clean').style.background = col.clean;
+      document.getElementById('sq-bad').style.background = col.bad;
+      if (!running) draw();
+    }
+    onTheme.push(refreshColors);
+    function laneY(l){ return H * 0.26 + (H * 0.56) * (l / (LANES - 1)); }
+    function spawn(init, bad, lane){
+      var l = lane != null ? lane : Math.floor(Math.random() * LANES);
+      return {x: init ? Math.random() * W : -12, l: l, y: laneY(l), v: bad ? 3 : 0.7 + Math.random() * 1.3, ph: Math.random() * 6.28, s: bad ? 7 : 1.6 + Math.random() * 1.6, ox: 0, oy: 0, bad: !!bad};
+    }
+    function resize(){
+      dpr = Math.min(window.devicePixelRatio || 1, 2);
+      var r = cv.getBoundingClientRect(); W = r.width; H = r.height;
+      cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr);
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      nodes = stages.map(function(s, i){ return {x: W * (0.1 + 0.8 * i / 3), label: s}; });
+      var n = Math.round(Math.min(150, Math.max(70, W / 8)));
+      parts = []; for (var i = 0; i < n; i++) parts.push(spawn(true));
+    }
+    function burst(x, y){
+      for (var i = 0; i < 16; i++){
+        var a = Math.random() * 6.28, v = 0.8 + Math.random() * 2.6;
+        frags.push({x:x, y:y, vx:Math.cos(a) * v, vy:Math.sin(a) * v, life:1});
+      }
+    }
+    function draw(){
+      ctx.clearRect(0, 0, W, H);
+      var tx = nodes[2].x;
+      ctx.lineWidth = 1; ctx.strokeStyle = col.lane;
+      for (var l = 0; l < LANES; l++){ ctx.beginPath(); ctx.moveTo(0, laneY(l)); ctx.lineTo(W, laneY(l)); ctx.stroke(); }
+      ctx.font = '500 ' + (W < 520 ? 9 : 11) + 'px "JetBrains Mono", monospace';
+      ctx.textAlign = 'center';
+      nodes.forEach(function(nd, i){
+        var hot = i === 2;
+        ctx.strokeStyle = hot ? col.clean : col.raw;
+        ctx.globalAlpha = hot ? 0.6 : 0.4;
+        ctx.lineWidth = hot ? 2 : 1;
+        ctx.beginPath(); ctx.moveTo(nd.x, 34); ctx.lineTo(nd.x, H - 14); ctx.stroke();
+        ctx.globalAlpha = 1;
+        ctx.fillStyle = hot ? col.clean : col.text;
+        ctx.fillRect(nd.x - 4, 22, 8, 8);
+        ctx.fillText(nd.label, nd.x, 18);
+      });
+      for (var i = 0; i < parts.length; i++){
+        var p = parts[i];
+        var clean = p.x > tx;
+        var amp = p.x < tx ? 20 : Math.max(1.5, 20 - (p.x - tx) * 0.5);
+        var ty = laneY(p.l) + Math.sin(p.x * 0.035 + p.ph) * (p.bad ? 6 : amp);
+        var dx = p.x - mouse.x, dy = p.y - mouse.y, d2 = dx * dx + dy * dy;
+        if (d2 < 7000){ var d = Math.sqrt(d2) || 1, f = (84 - Math.min(84, d)) / 84; p.ox += (dx / d) * f * 3; p.oy += (dy / d) * f * 3; }
+        p.ox *= 0.92; p.oy *= 0.92;
+        p.y += (ty - p.y) * 0.12;
+        p.x += p.v * speed;
+        if (p.bad && p.x >= tx){ burst(p.x, p.y); caught++; parts[i] = spawn(false); continue; }
+        if (!p.bad && p.x > nodes[3].x && !p.served){ p.served = true; rows += 1; }
+        if (p.x > W + 12){ parts[i] = spawn(false); continue; }
+        if (p.bad){
+          ctx.globalAlpha = 1; ctx.fillStyle = col.bad; ctx.shadowColor = col.bad; ctx.shadowBlur = 12;
+          ctx.fillRect(p.x + p.ox - 4, p.y + p.oy - 4, 8, 8); ctx.shadowBlur = 0;
+        } else {
+          ctx.globalAlpha = clean ? 0.95 : 0.8; ctx.fillStyle = clean ? col.clean : col.raw;
+          ctx.fillRect(p.x + p.ox - p.s / 2, p.y + p.oy - p.s / 2, p.s * (clean ? 2.2 : 1.6), p.s);
+        }
+      }
+      for (var j = frags.length - 1; j >= 0; j--){
+        var g = frags[j]; g.x += g.vx; g.y += g.vy; g.life -= 0.035;
+        if (g.life <= 0){ frags.splice(j, 1); continue; }
+        ctx.globalAlpha = g.life; ctx.fillStyle = col.bad; ctx.fillRect(g.x, g.y, 3, 3);
+      }
+      ctx.globalAlpha = 1;
+      if (rowsEl) rowsEl.textContent = (rows * 1000).toLocaleString('en-US');
+      if (caughtEl) caughtEl.textContent = caught;
+    }
+    function loop(){ draw(); if (running) raf = requestAnimationFrame(loop); }
+    function start(){ if (!running && !reduce){ running = true; loop(); } }
+    function stop(){ running = false; cancelAnimationFrame(raf); }
+    injectBad = function(lane){
+      if (reduce){ caught++; burst(nodes[2].x, H / 2); draw(); return; }
+      parts.push(spawn(false, true, lane));
+    };
+    resize(); refreshColors(); draw();
+    window.addEventListener('resize', function(){ resize(); draw(); });
+    cv.addEventListener('pointermove', function(e){ var r = cv.getBoundingClientRect(); mouse.x = e.clientX - r.left; mouse.y = e.clientY - r.top; });
+    cv.addEventListener('pointerleave', function(){ mouse.x = mouse.y = -999; });
+    cv.addEventListener('click', function(e){
+      var r = cv.getBoundingClientRect(), y = e.clientY - r.top, best = 0, bd = 1e9;
+      for (var l = 0; l < LANES; l++){ var d = Math.abs(laneY(l) - y); if (d < bd){ bd = d; best = l; } }
+      injectBad(best);
+    });
+    if (injectBtn) injectBtn.addEventListener('click', function(){ injectBad(); });
+    if (speedEl) speedEl.addEventListener('input', function(){ speed = parseFloat(speedEl.value) || 1; speedV.textContent = speed.toFixed(1) + 'x'; });
+    if ('IntersectionObserver' in window){ new IntersectionObserver(function(es){ es[0].isIntersecting ? start() : stop(); }, {threshold:0.05}).observe(cv); }
+    else { start(); }
+    document.addEventListener('visibilitychange', function(){ document.hidden ? stop() : start(); });
+  }
+
+  /* ---------- SQL console replay ---------- */
+  var body = document.getElementById('rowsbody'), runBtn = document.getElementById('run'), status = document.getElementById('status');
+  var data = [['banking_query_speedup','45%'],['records_processed_per_day','10M+'],['sql_execution_speedup','55%'],['snowflake_cost_reduction','30%'],['dashboard_users','200+'],['data_accuracy_improvement','25%']];
+  var timers = [];
+  function replay(){
+    timers.forEach(clearTimeout); timers = []; body.innerHTML = ''; status.textContent = 'running…';
+    data.forEach(function(r, i){
+      timers.push(setTimeout(function(){
+        var t = document.createElement('tr'); t.className = 'new';
+        var a = document.createElement('td'); a.textContent = r[0];
+        var b = document.createElement('td'); b.textContent = r[1];
+        t.appendChild(a); t.appendChild(b); body.appendChild(t);
+        if (i === data.length - 1){ status.innerHTML = '6 rows returned · <b>OK</b>'; }
+      }, reduce ? 0 : 260 + i * 300));
+    });
+  }
+  if (runBtn) runBtn.addEventListener('click', replay);
+
+  /* ---------- tilt cards ---------- */
+  if (!reduce){
+    document.querySelectorAll('.case').forEach(function(card){
+      card.addEventListener('pointermove', function(e){
+        var r = card.getBoundingClientRect(), x = (e.clientX - r.left) / r.width, y = (e.clientY - r.top) / r.height;
+        card.style.transform = 'rotateX(' + ((0.5 - y) * 8).toFixed(2) + 'deg) rotateY(' + ((x - 0.5) * 10).toFixed(2) + 'deg)';
+        card.style.setProperty('--cx', (x * 100) + '%'); card.style.setProperty('--cy', (y * 100) + '%');
+      });
+      card.addEventListener('pointerleave', function(){ card.style.transform = ''; });
+    });
+  }
+
+  /* ---------- skills filter ---------- */
+  var btns = document.querySelectorAll('.filters button'), chips = document.querySelectorAll('#chips li');
+  function applyFilter(f){
+    btns.forEach(function(x){ x.setAttribute('aria-pressed', x.getAttribute('data-f') === f ? 'true' : 'false'); });
+    chips.forEach(function(c){ c.classList.toggle('dim', f !== 'all' && c.getAttribute('data-c') !== f); });
+  }
+  btns.forEach(function(b){ b.addEventListener('click', function(){ applyFilter(b.getAttribute('data-f')); }); });
+
+  /* ---------- copy email ---------- */
+  var toast = document.getElementById('toast');
+  function copyEmail(){
+    function ok(){ toast.textContent = 'Copied.'; setTimeout(function(){ toast.textContent = ''; }, 2000); }
+    function fail(){ toast.textContent = 'Copy this address: ' + EMAIL; }
+    try { if (navigator.clipboard && navigator.clipboard.writeText){ navigator.clipboard.writeText(EMAIL).then(ok, fail); } else { fail(); } } catch (e){ fail(); }
+  }
+  var copyBtn = document.getElementById('copy'); if (copyBtn) copyBtn.addEventListener('click', copyEmail);
+
+  /* ---------- GitHub repos, live ---------- */
+  var GH = 'Vagdevikurra';
+  var ghGrid = document.getElementById('ghgrid'), ghMeta = document.getElementById('ghmeta'), ghNote = document.getElementById('ghnote');
+  function monthYear(iso){ try { return new Date(iso).toLocaleDateString('en-US', {month:'short', year:'numeric'}); } catch (e) { return ''; } }
+  function repoCard(r){
+    var a = document.createElement('a'); a.className = 'repo'; a.href = r.html_url; a.target = '_blank'; a.rel = 'noopener';
+    var h = document.createElement('h3'); h.textContent = r.name; a.appendChild(h);
+    var p = document.createElement('p'); p.textContent = r.description || 'No description yet.'; a.appendChild(p);
+    var m = document.createElement('div'); m.className = 'meta';
+    if (r.language){ var l = document.createElement('span'); l.className = 'lang'; l.textContent = r.language; m.appendChild(l); }
+    if (r.stargazers_count){ var st = document.createElement('span'); st.textContent = '★ ' + r.stargazers_count; m.appendChild(st); }
+    var u = document.createElement('span'); u.textContent = 'updated ' + monthYear(r.pushed_at); m.appendChild(u);
+    a.appendChild(m); return a;
+  }
+  function loadRepos(){
+    if (!ghGrid || !window.fetch) return;
+    fetch('https://api.github.com/users/' + GH + '/repos?per_page=100&sort=pushed')
+      .then(function(r){ if (!r.ok) throw new Error('status ' + r.status); return r.json(); })
+      .then(function(list){
+        var keep = list.filter(function(r){ return !r.fork && !r.archived && r.name.toLowerCase() !== (GH + '.github.io').toLowerCase() && r.name.toLowerCase() !== GH.toLowerCase(); });
+        keep.sort(function(a, b){ return new Date(b.pushed_at) - new Date(a.pushed_at); });
+        keep = keep.slice(0, 6);
+        if (!keep.length) return;
+        ghGrid.innerHTML = '';
+        keep.forEach(function(r){ ghGrid.appendChild(repoCard(r)); });
+        if (ghMeta) ghMeta.innerHTML = 'github.com/' + GH + ' · <b>' + list.length + '</b> public repositories';
+      })
+      .catch(function(){ if (ghNote) ghNote.textContent = 'Could not load the live list just now. The profile link above always works.'; });
+  }
+  loadRepos();
+
+  /* ---------- navigation helper ---------- */
+  function go(id){ var el = document.getElementById(id); if (el) el.scrollIntoView({behavior: reduce ? 'auto' : 'smooth', block: 'start'}); }
+
+  /* ---------- terminal ---------- */
+  var out = document.getElementById('termout'), tform = document.getElementById('termform'), tin = document.getElementById('terminput'), tchips = document.getElementById('termchips');
+  var hist = [], hi = 0;
+  function line(text, cls){ var d = document.createElement('div'); if (cls) d.className = cls; d.textContent = text; out.appendChild(d); out.scrollTop = out.scrollHeight; }
+  var CMDS = {
+    help: function(){ ['commands:','  whoami       who I am','  stack        tools I use','  impact       results in numbers','  experience   where I have worked','  contact      how to reach me','  github       my repositories','  theme <name> cobalt | obsidian | aurora | ivory | sunset','  clear        clear the screen'].forEach(function(l){ line(l, 'dim'); }); },
+    whoami: function(){ line('Vagdevi Kurra, Data Engineer in Atlanta, GA.'); line('5+ years building Databricks, Snowflake and Spark pipelines for banking and supply chain data.', 'dim'); },
+    stack: function(){ line('languages   SQL, Python, PySpark, Spark SQL'); line('platforms   Databricks, Snowflake, Delta Lake, PostgreSQL, DB2'); line('pipelines   dbt, Airflow, Kafka, Spark Streaming, Informatica, SSIS'); line('cloud/devops AWS S3, Glue, Lambda, Terraform, Git, Jenkins'); line('reporting   Power BI, Tableau'); },
+    impact: function(){ data.forEach(function(r){ line(r[0] + ' = ' + r[1], 'ok'); }); },
+    experience: function(){ line('2025-now   Data Engineer, Kforce at Regions Bank'); line('2023-2025  Senior Data & Business Analyst, Rain Bird'); line('2019-2021  Development Analyst, Accenture'); },
+    contact: function(){ line('email     ' + EMAIL); line('linkedin  linkedin.com/in/vagdevikurraba'); line('github    github.com/Vagdevikurra'); line('location  Atlanta, GA'); },
+    github: function(){ line('github.com/Vagdevikurra', 'ok'); line('scroll to the Code section for my latest repositories.', 'dim'); go('code'); },
+    clear: function(){ out.innerHTML = ''; }
+  };
+  function runCmd(raw){
+    var t = raw.trim(); if (!t) return;
+    line(t, 'cmd');
+    var parts = t.toLowerCase().split(/\s+/), c = parts[0];
+    if (c === 'theme'){
+      if (!parts[1]){ line('themes: ' + PALETTES.join(', '), 'dim'); return; }
+      if (setPalette(parts[1], true)) line('theme set to ' + PNAME[parts[1]], 'ok'); else line('unknown theme: ' + parts[1], 'dim');
+      return;
+    }
+    if (t.toLowerCase() === 'sudo hire vagdevi'){ line('permission granted ✔', 'ok'); line('next step: send her an email.', 'dim'); return; }
+    if (CMDS[c]) CMDS[c](); else line('command not found: ' + c + '. try "help"', 'dim');
+  }
+  if (out){
+    line('welcome. type "help" to see commands.', 'dim');
+    line('help', 'cmd'); CMDS.help();
+    ['whoami','stack','impact','experience','github','contact','theme aurora'].forEach(function(c){
+      var b = document.createElement('button'); b.type = 'button'; b.textContent = c;
+      b.addEventListener('click', function(){ runCmd(c); }); tchips.appendChild(b);
+    });
+    tform.addEventListener('submit', function(e){ e.preventDefault(); var v = tin.value; if (v.trim()){ hist.push(v); hi = hist.length; } runCmd(v); tin.value = ''; });
+    tin.addEventListener('keydown', function(e){
+      if (e.key === 'ArrowUp' && hist.length){ hi = Math.max(0, hi - 1); tin.value = hist[hi]; e.preventDefault(); }
+      else if (e.key === 'ArrowDown' && hist.length){ hi = Math.min(hist.length, hi + 1); tin.value = hist[hi] || ''; e.preventDefault(); }
+    });
+    document.getElementById('term').addEventListener('click', function(e){ if (e.target.tagName !== 'BUTTON') { try { tin.focus({preventScroll:true}); } catch (x) { tin.focus(); } } });
+  }
+
+  /* ---------- command palette ---------- */
+  var pal = document.getElementById('pal'), palq = document.getElementById('palq'), pall = document.getElementById('pallist');
+  var items = [
+    {l:'Go to Impact', h:'section', f:function(){ go('impact'); }},
+    {l:'Go to About', h:'section', f:function(){ go('about'); }},
+    {l:'Go to Terminal', h:'section', f:function(){ go('terminal'); }},
+    {l:'Go to Experience', h:'section', f:function(){ go('experience'); }},
+    {l:'Go to Selected work', h:'section', f:function(){ go('work'); }},
+    {l:'Go to Code (GitHub)', h:'section', f:function(){ go('code'); }},
+    {l:'Go to Skills', h:'section', f:function(){ go('skills'); }},
+    {l:'Go to Contact', h:'section', f:function(){ go('contact'); }},
+    {l:'Copy email address', h:'action', f:function(){ go('contact'); copyEmail(); }},
+    {l:'Replay SQL results', h:'action', f:function(){ go('impact'); replay(); }},
+    {l:'Inject a bad record', h:'action', f:function(){ go('top'); injectBad(); }},
+    {l:'Open GitHub profile', h:'link', f:function(){ window.open('https://github.com/Vagdevikurra', '_blank', 'noopener'); }},
+    {l:'Open LinkedIn', h:'link', f:function(){ window.open('https://www.linkedin.com/in/vagdevikurraba', '_blank', 'noopener'); }}
+  ];
+  PALETTES.forEach(function(p){ items.push({l:'Theme: ' + PNAME[p], h:'theme', f:function(){ setPalette(p, true); }}); });
+  var shown = [], sel = 0, lastFocus = null;
+  function renderPal(){
+    var q = palq.value.trim().toLowerCase();
+    shown = items.filter(function(i){ return !q || (i.l + ' ' + i.h).toLowerCase().indexOf(q) >= 0; });
+    if (sel >= shown.length) sel = 0;
+    pall.innerHTML = '';
+    shown.forEach(function(it, idx){
+      var li = document.createElement('li'), b = document.createElement('button'), s = document.createElement('span');
+      b.type = 'button'; b.setAttribute('role', 'option'); b.setAttribute('aria-selected', idx === sel ? 'true' : 'false');
+      b.textContent = it.l; s.textContent = it.h; b.appendChild(s);
+      b.addEventListener('click', function(){ runItem(idx); });
+      b.addEventListener('pointermove', function(){ if (sel !== idx){ sel = idx; renderPal(); } });
+      li.appendChild(b); pall.appendChild(li);
+    });
+    var cur = pall.querySelector('[aria-selected="true"]'); if (cur && cur.scrollIntoView) cur.scrollIntoView({block:'nearest'});
+  }
+  function openPal(){ lastFocus = document.activeElement; pal.hidden = false; palq.value = ''; sel = 0; renderPal(); palq.focus(); }
+  function closePal(){ pal.hidden = true; if (lastFocus && lastFocus.focus) { try { lastFocus.focus({preventScroll:true}); } catch (e) {} } }
+  function runItem(i){ var it = shown[i]; if (!it) return; closePal(); setTimeout(it.f, 30); }
+  document.getElementById('open-pal').addEventListener('click', openPal);
+  pal.addEventListener('click', function(e){ if (e.target === pal) closePal(); });
+  palq.addEventListener('input', function(){ sel = 0; renderPal(); });
+  palq.addEventListener('keydown', function(e){
+    if (e.key === 'ArrowDown'){ sel = Math.min(shown.length - 1, sel + 1); renderPal(); e.preventDefault(); }
+    else if (e.key === 'ArrowUp'){ sel = Math.max(0, sel - 1); renderPal(); e.preventDefault(); }
+    else if (e.key === 'Enter'){ runItem(sel); e.preventDefault(); }
+  });
+  document.addEventListener('keydown', function(e){
+    var tag = (document.activeElement && document.activeElement.tagName) || '';
+    if ((e.key === 'k' || e.key === 'K') && (e.metaKey || e.ctrlKey)){ e.preventDefault(); pal.hidden ? openPal() : closePal(); }
+    else if (e.key === '/' && tag !== 'INPUT' && tag !== 'TEXTAREA' && pal.hidden){ e.preventDefault(); openPal(); }
+    else if (e.key === 'Escape' && !pal.hidden){ closePal(); }
+  });
+})();
+</script>
+</body>
+</html>
