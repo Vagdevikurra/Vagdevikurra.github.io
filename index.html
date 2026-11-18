@@ -189,7 +189,7 @@ h2{font-family:var(--font-display);font-weight:700;font-size:clamp(26px,4.4vw,44
 .job li::marker{color:var(--brand-text)}
 
 /* work */
-.cases{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:18px;perspective:1000px}
+.cases{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,400px),1fr));gap:18px;perspective:1000px}
 .case{position:relative;background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:24px;display:flex;flex-direction:column;gap:12px;transform-style:preserve-3d;transition:transform .15s ease-out,border-color .2s ease,box-shadow .2s ease;overflow:hidden}
 .case::after{content:"";position:absolute;inset:0;background:radial-gradient(260px circle at var(--cx,50%) var(--cy,0%),rgba(var(--pop-rgb),.14),transparent 60%);opacity:0;transition:opacity .2s ease;pointer-events:none}
 .case:hover{border-color:var(--pop);box-shadow:0 20px 60px rgba(var(--brand-rgb),.28)}
@@ -348,6 +348,7 @@ footer{padding:36px 0 48px;color:var(--muted);font-size:14px;font-family:var(--f
         <table>
           <thead><tr><th>metric</th><th>value</th></tr></thead>
           <tbody id="rowsbody">
+            <tr><td>enterprise_auth_records</td><td>Billions</td></tr>
             <tr><td>banking_query_speedup</td><td>45%</td></tr>
             <tr><td>records_processed_per_day</td><td>10M+</td></tr>
             <tr><td>sql_execution_speedup</td><td>55%</td></tr>
@@ -357,7 +358,7 @@ footer{padding:36px 0 48px;color:var(--muted);font-size:14px;font-family:var(--f
           </tbody>
         </table>
       </div>
-      <div class="status" id="status">6 rows returned · <b>OK</b></div>
+      <div class="status" id="status">7 rows returned · <b>OK</b></div>
     </div>
   </section>
 
@@ -368,7 +369,7 @@ footer{padding:36px 0 48px;color:var(--muted);font-size:14px;font-family:var(--f
     <div class="about-grid">
       <div>
         <p>I model entities and metrics clearly, build pipelines that cope with changing sources, and add the checks that catch bad data before a report does.</p>
-        <p>At a bank I work on identity, authentication and fraud data in Databricks. Before that I built Snowflake and Spark pipelines for a global manufacturer, pulling from ERP, warehouse and HR systems. I care about performance, documentation and explaining my decisions in plain language.</p>
+        <p>At a bank I migrated money movement, mobile, online and electronic banking data to Snowflake, then built the Enterprise Authentication pipelines that carry billions of records for fraud and cyber teams. Before that I built Snowflake and Spark pipelines for a global manufacturer, pulling from ERP, warehouse and HR systems. I care about performance, documentation and explaining my decisions in plain language.</p>
       </div>
       <div class="facts">
         <div><span>role</span><b>Data Engineer</b></div>
@@ -405,11 +406,12 @@ footer{padding:36px 0 48px;color:var(--muted);font-size:14px;font-family:var(--f
         <h3>Data Engineer</h3>
         <p class="org">Kforce, on assignment at Regions Bank</p>
         <ul>
-          <li>Build and run Databricks, PySpark, dbt and Delta Lake pipelines for banking identity, authentication and fraud data from DB2/AS400, APIs, databases, files and Kafka.</li>
-          <li>Improved query execution by 45% through partitioning, clustering and query plan review.</li>
-          <li>Added validation at ingest, reconciliation and anomaly checks with documented recovery steps.</li>
-          <li>Built Kafka and Spark Structured Streaming pipelines with checkpointing, retries and deduplication.</li>
-          <li>Automated releases with Terraform and Git/Jenkins CI/CD.</li>
+          <li>Migrated enterprise banking data domains (money movement, mobile banking, online banking, electronic banking and Enterprise Authentication) to Snowflake from Fiserv and other core and vendor platforms, DB2/AS400, APIs, databases, files and Kafka, at very large scale, with dbt transformations.</li>
+          <li>Built medallion (bronze, silver, gold) layers on Databricks, Delta Lake and Snowflake with dbt models, Delta Live Tables, Workflows and Unity Catalog, using incremental loads, schema evolution and partitioning.</li>
+          <li>Built the Enterprise Authentication pipelines, transmitting billions of records and capturing and detecting password and ID recovery, IVR and consumer password events and fraud rejections for fraud, cyber and analytics teams.</li>
+          <li>Automated electronic banking data pipelines end to end with Kafka and Spark Structured Streaming (checkpointing, retries, deduplication), Airflow, dbt and Git/Jenkins CI/CD.</li>
+          <li>Implemented data-quality rules, source-to-target reconciliation, anomaly checks and access controls; improved query execution by 45%.</li>
+          <li>Worked closely with product, fraud, cyber, security, data science and analytics teams; reviewed code and mentored junior engineers.</li>
         </ul>
       </div>
       <div class="job">
@@ -438,17 +440,26 @@ footer{padding:36px 0 48px;color:var(--muted);font-size:14px;font-family:var(--f
 
   <section id="work">
     <p class="kicker" data-scramble>// selected work</p>
-    <h2>Three problems, three fixes.</h2>
+    <h2>Four problems, four fixes.</h2>
     <p class="sub">Described at the level I can share publicly. Hover a card.</p>
     <div class="cases">
       <article class="case">
-        <span class="tag">Banking · Databricks</span>
-        <h3>Authentication and fraud data layer</h3>
+        <span class="tag">Banking · Snowflake</span>
+        <h3>Enterprise banking migration to Snowflake</h3>
         <dl>
-          <div><dt>Problem</dt><dd>Fraud and cyber teams needed fast, consistent answers from authentication data spread across several source systems.</dd></div>
-          <div><dt>What I did</dt><dd>Modeled curated Delta Lake layers with PySpark and dbt, added ingest checks and recovery steps, and tuned partitioning and clustering.</dd></div>
+          <div><dt>Problem</dt><dd>Money movement, mobile, online and electronic banking data lived in separate platforms, including Fiserv, and was too large and uneven to analyze together.</dd></div>
+          <div><dt>What I did</dt><dd>Migrated the domains to Snowflake with medallion layers, dbt models and incremental loads, with quality checks at every layer.</dd></div>
         </dl>
-        <p class="result-line">45% faster query execution.</p>
+        <p class="result-line">Billions of records on one governed platform.</p>
+      </article>
+      <article class="case">
+        <span class="tag">Banking · Databricks · Kafka</span>
+        <h3>Enterprise Authentication pipelines</h3>
+        <dl>
+          <div><dt>Problem</dt><dd>Fraud and cyber teams needed a complete, timely view of password and ID recovery, IVR and consumer password events and fraud rejections across channels.</dd></div>
+          <div><dt>What I did</dt><dd>Built streaming and batch pipelines on Databricks, Delta Lake and Kafka, with reconciliation, anomaly checks and tuned partitioning.</dd></div>
+        </dl>
+        <p class="result-line">Billions of records transmitted, and 45% faster queries.</p>
       </article>
       <article class="case">
         <span class="tag">Supply chain · Snowflake</span>
@@ -500,7 +511,7 @@ footer{padding:36px 0 48px;color:var(--muted);font-size:14px;font-family:var(--f
     </div>
     <ul class="chips" id="chips">
       <li data-c="lang">SQL</li><li data-c="lang">Python</li><li data-c="lang">PySpark</li><li data-c="lang">Spark SQL</li>
-      <li data-c="plat">Databricks</li><li data-c="plat">Snowflake</li><li data-c="plat">Delta Lake</li><li data-c="plat">PostgreSQL</li><li data-c="plat">DB2</li>
+      <li data-c="plat">Databricks</li><li data-c="plat">Snowflake</li><li data-c="plat">Delta Lake</li><li data-c="plat">Delta Live Tables</li><li data-c="plat">Unity Catalog</li><li data-c="plat">Medallion layers</li><li data-c="plat">PostgreSQL</li><li data-c="plat">DB2</li>
       <li data-c="pipe">dbt</li><li data-c="pipe">Airflow</li><li data-c="pipe">Kafka</li><li data-c="pipe">Spark Streaming</li><li data-c="pipe">Informatica</li><li data-c="pipe">SSIS</li>
       <li data-c="cloud">AWS S3</li><li data-c="cloud">Glue</li><li data-c="cloud">Lambda</li><li data-c="cloud">Terraform</li><li data-c="cloud">Git</li><li data-c="cloud">Jenkins</li>
       <li data-c="bi">Power BI</li><li data-c="bi">Tableau</li>
@@ -739,7 +750,7 @@ footer{padding:36px 0 48px;color:var(--muted);font-size:14px;font-family:var(--f
 
   /* ---------- SQL console replay ---------- */
   var body = document.getElementById('rowsbody'), runBtn = document.getElementById('run'), status = document.getElementById('status');
-  var data = [['banking_query_speedup','45%'],['records_processed_per_day','10M+'],['sql_execution_speedup','55%'],['snowflake_cost_reduction','30%'],['dashboard_users','200+'],['data_accuracy_improvement','25%']];
+  var data = [['enterprise_auth_records','Billions'],['banking_query_speedup','45%'],['records_processed_per_day','10M+'],['sql_execution_speedup','55%'],['snowflake_cost_reduction','30%'],['dashboard_users','200+'],['data_accuracy_improvement','25%']];
   var timers = [];
   function replay(){
     timers.forEach(clearTimeout); timers = []; body.innerHTML = ''; status.textContent = 'running…';
@@ -749,7 +760,7 @@ footer{padding:36px 0 48px;color:var(--muted);font-size:14px;font-family:var(--f
         var a = document.createElement('td'); a.textContent = r[0];
         var b = document.createElement('td'); b.textContent = r[1];
         t.appendChild(a); t.appendChild(b); body.appendChild(t);
-        if (i === data.length - 1){ status.innerHTML = '6 rows returned · <b>OK</b>'; }
+        if (i === data.length - 1){ status.innerHTML = '7 rows returned · <b>OK</b>'; }
       }, reduce ? 0 : 260 + i * 300));
     });
   }
